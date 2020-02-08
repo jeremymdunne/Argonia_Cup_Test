@@ -53,7 +53,16 @@ void setup(){
   delay(2000);
   Serial.begin(115200); 
   Serial.println("Hello World!"); 
-   Wire.begin(400000);
+  status = IMU.begin();
+  Serial.print("status = ");
+  Serial.println(status);
+  if (status < 0) {
+    Serial.println("IMU initialization unsuccessful");
+    Serial.println("Check IMU wiring or try cycling power");
+    Serial.print("Status: ");
+    Serial.println(status);
+    while(1) {}
+  }
   float aFloat = 3.456; 
   //Serial.println("This is a Float: " + (aFloat)); 
   servo1.attach(SERVO_1_PIN);
@@ -68,6 +77,18 @@ void setup(){
 
 }
 
+float getHeading(){
+  IMU.readSensor();
+  float heading = (atan2(IMU.getMagY_uT() + Y_COMP,IMU.getMagX_uT() + X_COMP) * 180) / PI;
+ 
+  // Normalize to 0-360
+  if (heading < 0)
+  {
+    heading = 360 + heading;
+  }
+  return heading; 
+}
+
 
 void writeServo(float servo1Val, float servo2Val, float servo3Val, float servo4Val){
   servo1.write(servo1Val + SERVO_1_MIDPOINT);
@@ -78,18 +99,22 @@ void writeServo(float servo1Val, float servo2Val, float servo3Val, float servo4V
 
 void yaw_stabalization(){ 
   // get our orientation 
-  float orientation = 90; 
-
+  float orientation = getHeading(); 
+  Serial.println("Orientation: " + String(orientation)); 
 
   // calculate grid fin angles to get back to 'home' 
 
   float finAngle = yawPid.calculate(orientation); 
   writeServo(finAngle, -1* finAngle, -1*finAngle, finAngle); 
+  Serial.println("Fin Angle: " + String(finAngle)); 
 
 }
 
 
 void loop(){
+  long start = millis(); 
   yaw_stabalization(); 
-
+  long stop = millis(); 
+  delay(100 - (stop-start)); 
+  Serial.println("Loop"); 
 }
