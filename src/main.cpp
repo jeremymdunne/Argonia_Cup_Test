@@ -20,6 +20,8 @@ First TODO: Yaw stabalization.
 
 */ 
 
+// Hi Jacob 
+
 #define SERVO_1_PIN PA0
 #define SERVO_2_PIN PA1 
 #define SERVO_3_PIN PA2
